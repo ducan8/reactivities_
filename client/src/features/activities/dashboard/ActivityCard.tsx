@@ -9,18 +9,19 @@ import {
 } from "@mui/material";
 import { Activity } from "../../../lib/types";
 import { DeleteForever } from "@mui/icons-material";
+import { useActivites } from "../../../lib/hooks/useActivites";
 
 interface Props {
   activity: Activity;
   handleSelectActivity: (id: string) => void;
-  deleteActivity: (id: string) => void;
 }
 
 export default function ActivityCard({
   activity,
   handleSelectActivity,
-  deleteActivity,
 }: Props) {
+  const { deleteActivity } = useActivites();
+
   return (
     <Card sx={{ borderRadius: 3 }}>
       <CardContent>
@@ -36,7 +37,11 @@ export default function ActivityCard({
           </Typography>
           <DeleteForever
             color="inherit"
-            onClick={() => deleteActivity(activity.id)}
+            sx={{ cursor: "pointer" }}
+            onClick={() => {
+              deleteActivity.mutate(activity.id);
+              console.log("delete ", activity.id);
+            }}
           ></DeleteForever>
         </Box>
         <Typography sx={{ color: "text.secondary", mb: 1 }}>
