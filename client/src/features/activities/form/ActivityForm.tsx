@@ -2,14 +2,13 @@ import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { Activity } from "../../../lib/types";
 import { FormEvent } from "react";
 import { useActivites } from "../../../lib/hooks/useActivites";
+import { useNavigate, useParams } from "react-router";
 
-interface Props {
-  closeForm: () => void;
-  activity: Activity | undefined;
-}
-
-export default function ActivityForm({ closeForm, activity }: Props) {
-  const { updateActivity, createActivity } = useActivites();
+export default function ActivityForm() {
+  const { id } = useParams();
+  const { updateActivity, createActivity, activity, isLoadingActivity } =
+    useActivites(id);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,16 +23,20 @@ export default function ActivityForm({ closeForm, activity }: Props) {
     if (activity) {
       data["id"] = activity.id;
       await updateActivity.mutateAsync(data as unknown as Activity);
+      navigate(`/activities/${activity.id}`);
     } else {
-      await createActivity.mutateAsync(data as unknown as Activity);
+      createActivity.mutate(data as unknown as Activity, {
+        onSuccess: (id) => navigate(`/activities/${id}`),
+      });
     }
-    closeForm();
   };
 
+  if (isLoadingActivity)
+    return <Typography variant="h3">Loading Activities...</Typography>;
   return (
-    <Paper sx={{ borderRadius: 3, padding: 3 }}>
+    <Paper sx={{ borderRadius: 3, padding: 3, height: "90vh" }}>
       <Typography variant="h5" gutterBottom sx={{ color: "#003566" }}>
-        Create Activity
+        {activity ? "Edit " : "Create "} Activity
       </Typography>
       <Box
         component="form"
@@ -67,7 +70,7 @@ export default function ActivityForm({ closeForm, activity }: Props) {
         <TextField name="city" label="City" defaultValue={activity?.city} />
         <TextField name="venue" label="Venue" defaultValue={activity?.venue} />
         <Box display={"flex"} justifyContent={"end"} gap={3}>
-          <Button color="inherit" onClick={() => closeForm()}>
+          <Button color="inherit" onClick={() => {}}>
             Cancel
           </Button>
           <Button
