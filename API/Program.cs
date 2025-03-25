@@ -2,6 +2,9 @@ using Application.Activities.Queries;
 using Application.Core;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using FluentValidation;
+using Application.Validators;
+using API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +28,18 @@ builder.Services.AddCors(opt =>
 builder.Services.AddMediatR(c =>
 {
     c.RegisterServicesFromAssemblyContaining<GetActivitiesList.Handler>();
+    c.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
 builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
 
+builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityValidator>();
+
+builder.Services.AddTransient<ExceptionMiddleware>();
+
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors("cors");
 
